@@ -53,6 +53,7 @@ def zakljucaj(put):
     return (k32, h) if h not in (None, wintypes.HANDLE(-1).value) else None
 
 def pokreni(izlaz_folder=None):
+    if izlaz_folder: Path(izlaz_folder).mkdir(parents=True, exist_ok=True)
     rez, baza = [], Path(tempfile.mkdtemp(prefix="Sihtarica provjera čćšđž "))
     def test(naziv, fn):
         try: fn(); rez.append((naziv, True, "")); print("  ✔", naziv)
