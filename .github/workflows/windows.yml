@@ -48,5 +48,6 @@ jobs:
           name: Sihtarica_IDSS_IMH_Windows
           path: |
             dist/Sihtarica_IDSS_IMH.exe
+            ${{ runner.temp }}/provjera_kod/
             ${{ runner.temp }}/provjera_exe/
           retention-days: 90

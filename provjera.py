@@ -148,6 +148,9 @@ def pokreni(izlaz_folder=None):
         d = list(openpyxl.load_workbook(ev)["Dnevnik uvoza"].iter_rows(min_row=3, values_only=True)); assert len(d) == 4, d
     test("Sigurnosna kopija prije svakog upisa i trag u Dnevniku uvoza", t_kopije)
     ok = all(x[1] for x in rez)
+    if os.environ.get("GITHUB_ACTIONS"):                    # pale provjere kao vidljive napomene na GitHubu
+        for n, o, d in rez:
+            if not o: print(f"::error title=PALO: {n}::" + d.strip().replace("%", "%25").replace("\r", "").replace("\n", "%0A")[:3000], flush=True)
     izvj = f"Šihtarica IDSS/IMH v{E.VERZIJA} – provjera {dt.datetime.now():%d.%m.%Y %H:%M}\nSistem: {sys.platform} / Python {sys.version.split()[0]}" \
            f" / {'EXE' if getattr(sys, 'frozen', False) else 'izvorni kod'}\n\n" + \
            "\n".join(f"{'PROŠLO' if o else 'PALO  '}  {n}" + (f"\n        {d}" if d else "") for n, o, d in rez) + \
