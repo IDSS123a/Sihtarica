@@ -1,0 +1,52 @@
+name: Windows – izrada i provjera
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Preuzimanje koda
+        uses: actions/checkout@v4
+
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalacija paketa
+        run: python -m pip install -r requirements.txt
+
+      - name: Provjera izvornog koda (11 provjera)
+        env:
+          PYTHONUTF8: "1"
+        run: python provjera.py "${{ runner.temp }}\provjera_kod"
+
+      - name: Izrada Sihtarica_IDSS_IMH.exe
+        run: >
+          pyinstaller --noconfirm --clean --onefile --windowed --name Sihtarica_IDSS_IMH
+          --add-data "sablon_Sihtarica_IDSS_IMH.xlsx;." --add-data "fonts;fonts" app.py
+
+      - name: Provjera gotovog .exe (11 provjera)
+        shell: pwsh
+        run: |
+          $cilj = "${{ runner.temp }}\provjera_exe"
+          $p = Start-Process -FilePath "dist\Sihtarica_IDSS_IMH.exe" -ArgumentList "--provjera", "`"$cilj`"" -Wait -PassThru
+          Get-Content "$cilj\rezultat_provjere.txt" -Encoding UTF8
+          Get-Content "$cilj\rezultat_provjere.txt" -Encoding UTF8 | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          if ($p.ExitCode -ne 0) { throw "Provjera .exe nije prošla (kod $($p.ExitCode))" }
+
+      - name: Objava .exe i rezultata provjere
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sihtarica_IDSS_IMH_Windows
+          path: |
+            dist/Sihtarica_IDSS_IMH.exe
+            ${{ runner.temp }}/provjera_exe/
+          retention-days: 90
